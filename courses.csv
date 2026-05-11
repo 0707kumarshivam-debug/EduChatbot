@@ -1,6 +1,15 @@
-course,fees,duration,level
-Python Programming,29990,3 months,Beginner
-Data Science,49990,8 months,Intermediate
-Web Development,39990,6 months,Beginner
-Machine Learning,59990,6 months,Advanced
-Digital Marketing,24990,2 months,Beginner
+course,fees,duration,level,mode,certification,projects,career_support
+Python Programming,29990,3 Months,Beginner,Online,Yes,5 Projects,Yes
+Data Science,49990,8 Months,Intermediate,Online,Yes,10 Projects,Yes
+Web Development,39990,6 Months,Beginner to Intermediate,Online,Yes,8 Projects,Yes
+Machine Learning,59990,6 Months,Advanced,Online,Yes,12 Projects,Yes
+Artificial Intelligence,64990,6 Months,Advanced,Online,Yes,10 Projects,Yes
+Deep Learning,69990,7 Months,Advanced,Online,Yes,15 Projects,Yes
+Data Analytics,44990,4 Months,Beginner to Intermediate,Online,Yes,6 Projects,Yes
+Business Analytics,42990,4 Months,Intermediate,Online,Yes,5 Projects,Yes
+SQL for Data Analysis,19990,2 Months,Beginner,Online,Yes,4 Projects,Yes
+Power BI & Data Visualization,34990,3 Months,Beginner to Intermediate,Online,Yes,6 Projects,Yes
+Generative AI & Prompt Engineering,54990,3 Months,Intermediate,Online,Yes,7 Projects,Yes
+Natural Language Processing (NLP),57990,5 Months,Advanced,Online,Yes,9 Projects,Yes
+Computer Vision,61990,5 Months,Advanced,Online,Yes,8 Projects,Yes
+Cloud Computing for AI,52990,4 Months,Intermediate,Online,Yes,6 Projects,Yes
