@@ -9,8 +9,7 @@ import re
 # ============================================
 
 # Initialize OpenAI client (replace with your actual key)
-client = OpenAI(api_key="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")
-
+client = OpenAI(api_key="YOUR_API_KEY")
 st.set_page_config(
     page_title="EduBot - Education Assistant",
     page_icon="🎓",
