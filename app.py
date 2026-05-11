@@ -166,7 +166,7 @@ with st.sidebar:
 
     st.markdown("### 📚 Courses")
     for _, row in df.iterrows():
-        st.markdown(f"• **{row['course']}** - ₹{row['fees']:,}")
+        st.markdown(f"• **{row['course']})
 
     st.markdown("---")
     st.markdown("### 💡 Quick Tips")
