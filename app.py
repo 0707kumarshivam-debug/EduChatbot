@@ -1,5 +1,9 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import pandas as pd
+from datetime import datetime
+import os
+import json
 
 # =========================================
 # PAGE CONFIG
@@ -11,6 +15,38 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
+# =========================================
+# CHAT HISTORY LOGGER
+# =========================================
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CHAT_HISTORY_FILE = os.path.join(BASE_DIR, "chat_history.csv")
+
+
+def save_chat(user_message, bot_reply):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    new_data = pd.DataFrame({
+        "timestamp": [timestamp],
+        "user_message": [user_message],
+        "bot_reply": [bot_reply]
+    })
+
+    try:
+        print("📁 CSV PATH:", CHAT_HISTORY_FILE, flush=True)
+
+        if os.path.exists(CHAT_HISTORY_FILE) and os.path.getsize(CHAT_HISTORY_FILE) > 0:
+            old_df = pd.read_csv(CHAT_HISTORY_FILE)
+            updated_df = pd.concat([old_df, new_data], ignore_index=True)
+            updated_df.to_csv(CHAT_HISTORY_FILE, index=False, encoding="utf-8")
+            print("✅ Chat appended to CSV", flush=True)
+        else:
+            new_data.to_csv(CHAT_HISTORY_FILE, index=False, encoding="utf-8")
+            print("✅ New CSV created", flush=True)
+
+    except Exception as e:
+        print("❌ CSV Save Error:", e, flush=True)
 
 # =========================================
 # GLOBAL CSS
@@ -142,7 +178,8 @@ col_search, col_cat, col_level, col_dur = st.columns([3, 1.5, 1.5, 1.5])
 with col_search:
     st.text_input("", placeholder="Search courses — Python, AI, Power BI...", label_visibility="collapsed")
 with col_cat:
-    st.selectbox("", ["All Categories", "Data Science", "AI / ML", "Programming", "Analytics", "Cloud"], label_visibility="collapsed")
+    st.selectbox("", ["All Categories", "Data Science", "AI / ML", "Programming", "Analytics", "Cloud"],
+                 label_visibility="collapsed")
 with col_level:
     st.selectbox("", ["All Levels", "Beginner", "Intermediate", "Advanced"], label_visibility="collapsed")
 with col_dur:
@@ -166,28 +203,28 @@ st.markdown("""
 # =========================================
 
 courses = [
-    ("thumb-blue",   "🐍", "Beginner",     "Python Programming",
+    ("thumb-blue", "🐍", "Beginner", "Python Programming",
      "From fundamentals to OOP, file handling, and automation with real-world projects.",
      "Rs. 29,990", "3 Months · 60 hrs"),
-    ("thumb-purple", "📊", "Industry",     "Data Science",
+    ("thumb-purple", "📊", "Industry", "Data Science",
      "Statistics, Pandas, SQL, EDA, and 5 industry-grade capstone projects.",
      "Rs. 49,990", "8 Months · 200 hrs"),
-    ("thumb-green",  "🤖", "Advanced",     "Machine Learning",
+    ("thumb-green", "🤖", "Advanced", "Machine Learning",
      "Supervised, unsupervised, deep learning, NLP and model deployment pipelines.",
      "Rs. 59,990", "6 Months · 150 hrs"),
-    ("thumb-amber",  "📈", "Analytics",    "Power BI",
+    ("thumb-amber", "📈", "Analytics", "Power BI",
      "DAX, data modelling, live dashboards and enterprise reporting workflows.",
      "Rs. 34,990", "3 Months · 75 hrs"),
-    ("thumb-rose",   "🧠", "Cutting Edge", "Generative AI",
+    ("thumb-rose", "🧠", "Cutting Edge", "Generative AI",
      "LLMs, prompt engineering, LangChain, RAG systems and AI product building.",
      "Rs. 54,990", "4 Months · 100 hrs"),
-    ("thumb-teal",   "☁️", "Cloud",        "AWS + Azure",
+    ("thumb-teal", "☁️", "Cloud", "AWS + Azure",
      "Cloud fundamentals, storage, compute, deployment and certification prep.",
      "Rs. 44,990", "5 Months · 120 hrs"),
-    ("thumb-indigo", "🗄️", "Database",     "SQL and NoSQL",
+    ("thumb-indigo", "🗄️", "Database", "SQL and NoSQL",
      "MySQL, PostgreSQL, MongoDB — queries, indexing, and database design patterns.",
      "Rs. 24,990", "2 Months · 50 hrs"),
-    ("thumb-orange", "📉", "Finance",      "Financial Analytics",
+    ("thumb-orange", "📉", "Finance", "Financial Analytics",
      "Excel, Python for finance, risk modelling and investment analytics dashboards.",
      "Rs. 39,990", "4 Months · 90 hrs"),
 ]
@@ -299,9 +336,9 @@ st.markdown("""
 # =========================================
 
 testimonials = [
-    ("#6366f1", "PR", "Priya Rajan",  "Data Analyst, Infosys, Bangalore",
+    ("#6366f1", "PR", "Priya Rajan", "Data Analyst, Infosys, Bangalore",
      "EduVerse's Data Science program completely transformed my career. I went from a commerce background to landing a data analyst role at a top MNC in just 8 months."),
-    ("#0891b2", "AK", "Arjun Kumar",  "ML Engineer, Swiggy, Delhi",
+    ("#0891b2", "AK", "Arjun Kumar", "ML Engineer, Swiggy, Delhi",
      "The ML course content is on par with international programs. EduBot helped me clear every concept at 2 AM when I was stuck. Incredible platform."),
     ("#d97706", "SM", "Shreya Mehta", "Business Analyst, TCS, Mumbai",
      "Placement cell is outstanding. Got 3 interview calls within 2 weeks of completing the program. The mock interviews really prepared me for the real thing."),
@@ -352,6 +389,39 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================
+# STREAMLIT BACKEND ENDPOINT
+# =========================================
+
+if "chat_logs" not in st.session_state:
+    st.session_state.chat_logs = []
+
+chat_data = st.text_area(
+    label="chat_backend_receiver",
+    key="chat_backend_receiver",
+    height=1,
+    label_visibility="collapsed"
+)
+
+if chat_data:
+    print("✅ Python received:", chat_data, flush=True)
+
+    try:
+        data = json.loads(chat_data)
+
+        user_message = data.get("user_message", "").strip()
+        bot_reply = data.get("bot_reply", "").strip()
+
+        current_pair = (user_message, bot_reply)
+
+        if user_message and bot_reply and current_pair not in st.session_state.chat_logs:
+            save_chat(user_message, bot_reply)
+            st.session_state.chat_logs.append(current_pair)
+            print("✅ Saved Successfully", flush=True)
+
+    except Exception as e:
+        print("❌ Save Error:", e, flush=True)
+
+# =========================================
 # FLOATING EDUBOT CHATBOT WIDGET
 # =========================================
 
@@ -381,9 +451,8 @@ SYSTEM_PROMPT = (
 )
 
 # Escape for JS template literals
-safe_key    = GROQ_API_KEY.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
+safe_key = GROQ_API_KEY.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
 safe_system = SYSTEM_PROMPT.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
-
 
 # ════════════════════════════════════════════════════════════════════════════════
 # THE FIX: Inject a <script> into the parent (Streamlit) document that appends
@@ -739,7 +808,7 @@ CHATBOT_INJECTOR = f"""
     msgs.scrollTop = msgs.scrollHeight;
   }}
 
-  async function sendMsg() {{
+async function sendMsg() {{
     if (busy) return;
     const inp = p.getElementById('ev-input');
     const txt = inp.value.trim();
@@ -777,13 +846,73 @@ CHATBOT_INJECTOR = f"""
       if (tr) tr.remove();
       addMsg('b', reply, true);
 
+// ── Save to Streamlit backend ──────────────────────────────────────
+      console.log('STEP 1: Reply received =', reply);
+
+      const payload = {{ user_message: txt, bot_reply: reply }};
+      console.log('STEP 2: Payload built =', JSON.stringify(payload));
+
+      const allTextareas = p.querySelectorAll('textarea');
+      console.log('STEP 3: Total textareas found =', allTextareas.length);
+     // Replace your textarea-finding logic with this:
+let targetTextarea = null;
+
+const allFrames = [p, ...Array.from(p.querySelectorAll("iframe"))
+  .map(f => {{
+    try {{ return f.contentDocument; }} catch(e) {{ return null; }}
+  }})
+  .filter(Boolean)
+];
+
+for (const doc of allFrames) {{
+  const areas = doc.querySelectorAll("textarea");
+
+  areas.forEach(ta => {{
+    const label = ta.getAttribute("aria-label");
+    if (label === "chat_backend_receiver") {{
+      targetTextarea = ta;
+    }}
+  }});
+}}
+
+console.log("STEP 5 Target =", targetTextarea);
+
+if (targetTextarea) {{
+  const win = targetTextarea.ownerDocument.defaultView;
+
+  const setter = Object.getOwnPropertyDescriptor(
+    win.HTMLTextAreaElement.prototype,
+    "value"
+  ).set;
+
+  setter.call(targetTextarea, JSON.stringify(payload));
+
+  targetTextarea.focus();
+
+  targetTextarea.dispatchEvent(
+    new win.InputEvent("input", {{
+      bubbles: true,
+      inputType: "insertText",
+      data: JSON.stringify(payload)
+    }})
+  );
+
+  targetTextarea.dispatchEvent(
+    new win.Event("change", {{ bubbles: true }})
+  );
+
+  targetTextarea.blur();
+
+  console.log("STEP 6: ✅ Sent to Streamlit textarea");
+}} else {{
+  console.error("❌ chat_backend_receiver textarea not found");
+}}
     }} catch (err) {{
       console.error('EduBot error:', err);
       const tr = p.getElementById('ev-typing-row');
       if (tr) tr.remove();
       addMsg('b', 'Oops! Connection issue. Please check your network and try again.', false);
     }}
-
     busy = false;
     p.getElementById('ev-send').disabled = false;
     inp.focus();
@@ -801,7 +930,7 @@ CHATBOT_INJECTOR = f"""
 """
 
 # Render a zero-height iframe that injects the widget into the parent document
-components.html(CHATBOT_INJECTOR, height=700, scrolling=False)
+components.html(CHATBOT_INJECTOR, height=0, scrolling=False)
 
 # =========================================
 # FOOTER
